@@ -1,21 +1,40 @@
-const express = require('express')
-const app = express()
-const port = 3000
+// Require Libraries
+require('dotenv').config();
+const express = require('express');
+require('./data/reddit-db');
 
-const exphbs = require('express-handlebars');
-const Handlebars = require('handlebars')
-const {allowInsecurePrototypeAccess} = require('@handlebars/allow-prototype-access')
+// App Setup
+const app = express();
 
-// Use "main" as our default layout
-app.engine('handlebars', exphbs({ defaultLayout: 'main', handlebars: allowInsecurePrototypeAccess(Handlebars) }));
-// Use handlebars to render
+// Middleware
+const exphbs  = require('express-handlebars');
+const bodyParser = require('body-parser');
+const expressValidator = require('express-validator');
+
+app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
-// Tell our app to send the "hello world" message to our home page
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(expressValidator());
+
+// Routes
 app.get('/', (req, res) => {
-  res.render('layouts/main', { msg: 'Handlebars are Cool!' });
+    res.render('index')
 })
 
-app.listen(port, () => {
-  console.log(`listening at http://localhost:${port}`)
-})
+require('./controllers/posts.js')(app);
+require('./controllers/comments.js')(app);
+
+
+
+
+// Run server on Port 
+if (require.main === module) {
+    app.listen(process.env.PORT, () => {
+        console.log(`Listening at http://localhost:${process.env.PORT}`)
+    });
+}
+
+module.exports = {app}
